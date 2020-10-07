@@ -21,6 +21,7 @@ import edu.cnm.deepdive.animals.service.AnimalService;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -28,6 +29,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ImageFragment extends Fragment {
 
   private WebView contentView;
+  private List<Animal> animals;
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -35,6 +37,7 @@ public class ImageFragment extends Fragment {
 
     View root = inflater.inflate(R.layout.fragment_image, container, false);
     setupWebView(root);
+    root.findViewById(R.id.randomize).setOnClickListener((v) -> randomize());
     return root;
   }
 
@@ -54,6 +57,12 @@ public class ImageFragment extends Fragment {
     settings.setUseWideViewPort(true);
     settings.setLoadWithOverviewMode(true);
     new RetrieverTask().execute();
+  }
+
+  private void randomize() {
+    Random rng = new Random();
+    final String imageURL = animals.get(rng.nextInt(animals.size())).getImageUrl();
+    contentView.loadUrl(imageURL);
   }
 
   private class RetrieverTask extends AsyncTask<Void, Void, List<Animal>> {
@@ -93,14 +102,8 @@ public class ImageFragment extends Fragment {
 
     @Override
     protected void onPostExecute(List<Animal> animalList) {
-      final String imageURL = animalList.get(0).getImageUrl();
-
-      Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          contentView.loadUrl(imageURL);
-        }
-      });
+      animals = animalList;
+      randomize();
 
     }
   }
